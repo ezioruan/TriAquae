@@ -1,0 +1,46 @@
+Installation guide of TriAquae2.0
+
+2012.10.22
+---------------------------------------
+
+INTRODUCTION
+
+TriAquae is an open source IT batch management software, it helps you to manage
+a big system(more than 100 servers) in a easy,efficient way.You can let all your
+Linux servers doing the same job in the same time,such as send a file,run a 
+script,modify file,excute command and etc.
+
+
+Perparation
+
+Before you are going to install TriAquae on you system,you need to make sure
+your environment fits the below needs.
+
+SYSTEM   = Linux,Unix,Freebsd
+Modules  = Python 2.4 or above
+	   Python-dev packages
+Compiler = gcc 4 or above
+
+
+INSTALLATION
+
+1. tar xvzf  TriAquae.2.0.Beta.tgz 
+2. cd TriAquae.2.0.beta
+3. python setup.py build --prefix=/yourDirectory/
+
+   #This will check whether you have Paramiko module on your system
+   
+4. python setup.py install
+
+5. cd /yourDirectory/bin
+   python TriAquae_console
+   #Default password: admin
+
+
+SUPPORT
+
+You can go to http://triaquae2.sinaapp.com to get the newest version.
+If you want to report a bug or give us any suggestion,you can send email
+to triaquae@gmail.com 
+
+

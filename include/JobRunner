@@ -1,0 +1,117 @@
+#!/usr/bin/python
+import os,sys
+import thread_ssh,global_env
+
+Record=global_env.g_env()
+WorkDir = global_env.WorkDir 
+GroupDir = '%s/conf/server_list' % WorkDir
+def JobRunner_Test():
+	try:
+		Option = sys.argv
+		if Option[1].startswith('--help'):
+
+                	Content= '''\nArguments: JobRunner [-option] ['GroupName01 GroupName02 ...'] ['Command']
+
+\t  -r [command]    		  : Run command on remote clients
+\t  -s [Local File] [Remote File]   : Send file to remote clients
+\t  -g [Remote File] [Local File]   : Get file from remote clients\n
+\t  Example01:\tpython JobRunner -r Group_Beijing_list 'sh report.sh' 
+\t  Example01:\tpython JobRunner -s Group_Hongkong	 local_file   remote_file \n
+\t  --help:\t\tShow helps\n '''
+                	print Content
+                	sys.exit()
+
+	
+		Option[0]
+		Option[1]
+		Option[2]
+		Option[3]
+		#Option[4]
+	except IndexError:
+		arg = len(sys.argv) - 1
+		print 'Error: program takes at least 3 arguments,only %s given,try --help for help.' % arg
+		sys.exit()
+
+	
+	# check whether groupfile exist or not
+	GroupList=Option[2].split()
+	for GroupName in GroupList:
+ 		loadSuccess = False;
+        	#while not loadSuccess:
+        	try:
+                	
+                        f = file('%s/%s' %(GroupDir,GroupName))
+                        loadSuccess =True;
+                except IOError:
+                        print "\033[31;40;1mError:No group file '%s' has been found\033[0m\n" % GroupName
+			sys.exit()
+	for FileName in GroupList:
+		try:
+			f = file('%s/%s' %(GroupDir,FileName))	
+			while True:
+				server = f.readline()
+				if len(server) == 0:break
+				if server.startswith('#'):continue
+				ip=server.split()[0]
+				username = server.split()[1]
+				password = server.split()[2]
+		except IndexError:
+			print 'Error: username or password not found for server %s in group file %s  ' %(ip,FileName)
+			sys.exit()
+
+	
+JobRunner_Test()
+
+def JobSendFile():
+	try:
+                Local_file = sys.argv[3]
+		Remote_file = sys.argv[4]
+                f = file(Local_file)
+                GroupName = sys.argv[2]
+		msg='Start sending file:%s to remote clients,this may take a minute........' % Local_file
+		Record.op_log(msg)
+		print msg
+                SendFile = thread_ssh.CmdBind()
+                SendFile.Run_FileTransfer(Local_file,Remote_file,GroupName,0)
+	except IOError:
+	 	print "\033[31;40;1mError:No such local file\033[0m\n"
+	except IndexError:
+		arg = len(sys.argv) - 1
+		print 'Error: program takes at least 4 arguments,only %s given,try --help for help.' % arg			
+
+#JobSendFile()
+def JobGetFile():
+	try:
+		Remote_file = sys.argv[3]
+		Local_file = sys.argv[4]
+		GroupName = sys.argv[2]
+		msg = 'Start downloading file: %s from remote clients,this may take a minute.....' % Remote_file
+	 	Record.op_log(msg)
+                print msg
+		GetFile = thread_ssh.CmdBind()
+		GetFile.Run_FileTransfer(Local_file,Remote_file,GroupName,1)
+	except IndexError:
+		arg = len(sys.argv) - 1
+                print 'Error: program takes at least 4 arguments,only %s given,try --help for help.' % arg
+#JobGetFile()
+def RunCmd():
+	msg = '\033[32;401mStart run command on remote clients,this may take a minute....\033[0m'
+	Record.op_log(msg)
+	print msg
+	RunCmd = thread_ssh.CmdBind()	
+	RunCmd.Run_Scripts(sys.argv[2],sys.argv[3])
+	print 'Excution result will be saved into logs/operation.log'
+
+Argument= sys.argv
+
+if __name__ == '__main__':
+	msg = "\033[36;1m-----------------start run JobRunner------------------\033[0m"
+        Record.op_log(msg)
+        print msg
+if Argument[1] == '-s':
+	JobSendFile()
+elif Argument[1] == '-g':
+	JobGetFile()
+elif Argument[1] == '-r':
+	RunCmd()
+
